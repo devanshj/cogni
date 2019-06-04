@@ -1,0 +1,206 @@
+import { BehaviorSubject, from } from "rxjs";
+import { distinctUntilChanged, map, mergeMap, filter, switchMap, mapTo, distinctUntilKeyChanged, debounceTime, zip, tap } from "rxjs/operators";
+import { spawn, ChildProcess } from "child_process";
+import { takeWithoutComplete, notNull, splice } from "../../utils";
+
+import { toCogniProcess } from "./process-port";
+import { Terminal } from "./ui/terminal";
+import { AppConfig } from "./types";
+import { cogniOutputFor, CogniOutput, CogniInput  } from "../../core";
+
+import { log, clear } from "../../logger";
+
+async function app({ spawnArgs }: AppConfig) {
+	let lastSpawnedProcess: ChildProcess | null = null;
+	const spawnCogniProcess = (): CogniInput["childProcess"] => {
+		if (lastSpawnedProcess) {
+			lastSpawnedProcess.removeAllListeners();
+			lastSpawnedProcess.kill()  
+		}
+
+		lastSpawnedProcess = spawn(...spawnArgs);
+		return toCogniProcess(lastSpawnedProcess);
+	};
+	const terminal = await Terminal.withConfig({ determineOriginPos: true });
+
+	const cogniInput$ = new BehaviorSubject<CogniInput | null>(null);	
+	const cogniOutput$ = new BehaviorSubject<CogniOutput | null>(null);
+	const focusedFeedIndex$ = new BehaviorSubject<number | null>(null);
+	const inputField$ = new BehaviorSubject<ReturnType<Terminal["takeInput"]> | null>(null);
+
+	const inputKey$ = inputField$.pipe(
+		filter(notNull),
+		switchMap(inputField => inputField!.key$)
+	);
+
+	const inputFieldValue$ = inputKey$.pipe(
+		filter(key => key !== "UP" && key !== "DOWN" && key !== "ENTER"),
+		map(() => inputField$.value),
+		filter(notNull),
+		map(inputField => inputField.getValue()),
+		distinctUntilChanged(),
+		debounceTime(100)
+	)
+	
+
+
+
+	/* ================================================ */
+	/* debug */
+
+	cogniInput$.pipe(map(
+		x => x !== null ? x.stdinFeedTexts : x
+	)).subscribe(log);
+	cogniOutput$.subscribe(log);
+	focusedFeedIndex$.subscribe(log);
+
+	
+
+
+
+	/* ================================================ */
+	/* cogniInput$ */
+
+	/* cogniInput$ -> cogniOutput$  */
+
+	cogniInput$.pipe(
+		filter(notNull),
+		distinctUntilChanged(),
+		mergeMap(cogniInput => from(cogniOutputFor(cogniInput)))
+	).subscribe(cogniOutput$);
+
+
+
+
+
+	/* ================================================ */
+	/* cogniOutput$ */
+
+	/* cogniOutput$ -> render */
+	cogniOutput$.pipe(
+		filter(notNull),
+		distinctUntilKeyChanged("stdoutText")
+	).subscribe(Terminal.preserveCursor(() => {
+		let { stdinFeeds, stdoutText } = cogniOutput$.value!;
+		let focusedFeedIndex = focusedFeedIndex$.value!;
+		
+		terminal.clear();
+		terminal.moveTo({ x: 0, y: 0 });
+		terminal.echo(stdoutText);
+	
+		stdinFeeds
+		.filter((_,i) => i !== focusedFeedIndex)
+		.forEach(({ pos, text }) => {
+			terminal.moveTo(pos);
+			terminal.echo(text);
+		});
+
+		(inputField => inputField && inputField.redraw())(inputField$.value);
+	}))
+
+	/* cogniOutput$ -> focusedFeedIndex$ */
+	cogniOutput$.pipe(
+		filter(notNull),
+		takeWithoutComplete(1),
+		mapTo(0)
+	).subscribe(focusedFeedIndex$)
+
+
+
+
+	/* ================================================ */
+	/* focusedFeedIndex$ */
+
+	/* focusedFeedIndex$ -> inputField$  */
+	focusedFeedIndex$.pipe(
+		filter(notNull),
+		distinctUntilChanged(),
+		map(index => {
+			let { pos, text: defaultValue } = cogniOutput$.value!.stdinFeeds[index];
+			return terminal.takeInput({ pos, defaultValue });
+		})
+	).subscribe(inputField$);
+
+
+
+
+	/* ================================================ */
+	/* inputKey$ */
+
+	inputKey$.pipe(
+		filter(key => key === "ENTER"),
+		map(() => inputField$.value!),
+		map(inputField => ({
+			value: inputField.getValue(),
+			caretPos: inputField.getCaretPos()
+		}))
+	).subscribe(({ value, caretPos }) => {
+		inputField$.next(
+			inputField$.value!
+			.setValue(value.substring(0, caretPos))
+		);
+		
+		cogniInput$.next({
+			childProcess: spawnCogniProcess(),
+			stdinFeedTexts: splice(
+				cogniOutput$.value!.stdinFeeds.map(x => x.text),
+				focusedFeedIndex$.value!,
+				1,
+				value.substring(0, caretPos),
+				value.substring(caretPos)
+			)
+		});
+	})
+
+	inputKey$.pipe(
+		filter(key => key === "DOWN" || key === "UP"),
+		map(dir => 
+			(
+				m => ((focusedFeedIndex$.value! + (dir === "UP" ? -1 : +1)) + m) % m
+			)(cogniOutput$.value!.stdinFeeds.length)
+		)
+	).subscribe(x => focusedFeedIndex$.next(x));
+
+
+
+
+	
+	/* ================================================ */
+	/* inputFieldValue$ */
+
+	/* inputFieldValue$ -> cogniInput$  */
+	inputFieldValue$.pipe(
+		tap(x => log(x)),
+		map(inputFieldValue =>
+			({
+				childProcess: spawnCogniProcess(),
+				stdinFeedTexts: splice(
+					cogniOutput$.value!.stdinFeeds.map(x => x.text),
+					focusedFeedIndex$.value!,
+					1,
+					inputFieldValue
+				)
+			})
+		)
+	).subscribe(cogniInput$);
+
+
+
+	
+	/* ================================================ */
+	/* inputField$ */
+
+	cogniInput$.next({
+		childProcess: spawnCogniProcess(),
+		stdinFeedTexts: []
+	});
+}
+
+app({
+	spawnArgs: [
+		process.argv[2],
+		process.argv.slice(3)
+	]
+})
+
+process.on("exit", () => clear());
