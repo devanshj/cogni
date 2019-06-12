@@ -34,8 +34,8 @@ const stdoutReducer = ({ text, curPos: { x, y } }: TerminalState["stdout"], data
 });
 
 
-export const cogniOutputFor = ({ childProcess, stdinFeedTexts }: CogniInput): Promise<CogniOutput> => {
-    let { exit$, stdout$, stdinWrite } = childProcess;
+export const cogniOutputFor = ({ process, feeds }: CogniInput): Promise<CogniOutput> => {
+    let { exit$, stdout$, stdinWrite } = process;
     let didExit$ = toBehaviorSubject(exit$.pipe(mapTo(true)), false);
     let noStdinFeeds$ = new Subject<true>();
 
@@ -47,7 +47,7 @@ export const cogniOutputFor = ({ childProcess, stdinFeedTexts }: CogniInput): Pr
 
                 stdout = stdoutReducer(stdout, data);
 
-                let nextFeed = stdinFeedTexts.shift();
+                let nextFeed = feeds.shift();
                 if (nextFeed) {
                     if (!didExit$.value) {
                         stdinFeeds = [...stdinFeeds, {

@@ -1,5 +1,5 @@
-import { Observable, ReplaySubject, BehaviorSubject, NEVER, concat, NextObserver, ObservedValueOf, Subject } from "rxjs";
-import { skip, take } from "rxjs/operators";
+import { Observable, ReplaySubject, BehaviorSubject, NEVER, concat, NextObserver, ObservedValueOf, Subject, combineLatest as rxjsCombineLatest } from "rxjs";
+import { skip, take, map } from "rxjs/operators";
 
 export const nexter = <T>(source$: Observable<T>) => {
     let n = 0;
@@ -93,3 +93,35 @@ export const unzip = <Sinks extends Array<NextObserver<any>>>(...sinks: Sinks) =
     (nexts: { [K in keyof Sinks]: ObservedValueOf<Sinks[K]> }) => 
         sinks.forEach((sink$, i) => sink$.next(nexts[i]))
 
+export const cyclicAdd = (x: number, a: number, m: number) => (x + a + m) % m;
+
+
+export const spreadMap =
+	<A extends any[], R>(fn: (...args: A) => R) =>
+		map((args: A) => fn(...args))
+
+export const combineLatest =
+	<T extends { [k: string]: Observable<{}> }>($Map: T): Observable<{
+		[K in keyof T]: ObservedValueOf<T[K]>
+	}> =>
+		(([ks, $s]) => 
+			rxjsCombineLatest(...$s).pipe(
+				map(vs => 
+					vs.reduce((vMap, v, i) => 
+						({
+							...vMap,
+							[ks[i]]: v
+						}),
+						{}
+					)
+				)
+			)
+		)(
+			Object.entries($Map).reduce(([ks, vs], kv) => 
+				[
+					[...ks, kv[0]],
+					[...vs, kv[1]]
+				],
+				[[], []] as [string[], Observable<{}>[]]
+			)
+		);

@@ -1,6 +1,6 @@
 import { spawn, ChildProcess } from "child_process";
-import { toCogniProcess } from "../process-port";
-import { nexter, toBehaviorSubject, toTag } from "../../../utils";
+import { toCogniProcess } from ".";
+import { nexter, toBehaviorSubject, toTag } from "../../../../../utils";
 import { take, mapTo } from "rxjs/operators";
 
 const testProcess = (process: ChildProcess) => {

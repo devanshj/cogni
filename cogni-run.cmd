@@ -1,2 +1,2 @@
 @echo off
-node dist/run/index.js %*
+node dist/cli/index.js %*

@@ -4,9 +4,7 @@ import path from "path";
 import { promisify } from "util";
 import { spawn } from "child_process";
 import { watch } from "chokidar"
-
-import app from "../driver/terminal";
-
+import app from "../run/terminal";
 
 let padding = Array.from({ length: 25 }).fill(" ").join("");
 

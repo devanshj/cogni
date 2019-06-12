@@ -13,10 +13,10 @@ export type CogniOutput = {
 }
 
 export type CogniInput = {
-	childProcess: {
+	process: {
 		stdout$: Observable<string>,
 		stdinWrite: (data: string) => void,
 		exit$: Observable<number>
 	},
-	stdinFeedTexts: Array<string>
+	feeds: Array<string>
 }

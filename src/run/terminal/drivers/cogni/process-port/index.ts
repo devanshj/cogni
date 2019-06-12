@@ -3,16 +3,15 @@ import { Observable, merge, race, timer } from "rxjs";
 import { map, buffer, debounceTime, delayWhen } from "rxjs/operators";
 import { ChildProcess } from "child_process";
 
-import { CogniInput } from "../../../core/types";
-import { NO_STDOUT_FALLBACK_TIMEOUT } from "../../../core";
 import { Readable } from "stream";
+import { CogniInput, NO_STDOUT_FALLBACK_TIMEOUT } from "../../../../../core";
 
 
 export const STDOUT_BUFFER_DEBOUNCE_TIME = 50;
 
 
 
-export const toCogniProcess = (childProcess: ChildProcess): CogniInput["childProcess"] => {
+export const toCogniProcess = (childProcess: ChildProcess): CogniInput["process"] => {
 
     const fromDataStream = (stream: Readable) => 
         (fromEvent(stream, "data") as Observable<Buffer>).pipe(

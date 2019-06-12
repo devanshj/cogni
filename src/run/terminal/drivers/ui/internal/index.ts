@@ -1,7 +1,29 @@
-import { terminal, defaultInputKeyBindings } from "../internals/terminal-kit";
+import { terminal } from "terminal-kit";
 import { Observable, Subscription, fromEvent } from "rxjs";
 import { map, delay } from "rxjs/operators";
 import size from "window-size";
+
+const defaultInputKeyBindings = {
+	ENTER: "submit",
+	KP_ENTER: "submit",
+	ESCAPE: "cancel",
+	BACKSPACE: "backDelete",
+	DELETE: "delete",
+	LEFT: "backward",
+	RIGHT: "forward",
+	UP: "historyPrevious",
+	DOWN: "historyNext",
+	HOME: "startOfInput",
+	END: "endOfInput",
+	TAB: "autoComplete",
+	CTRL_LEFT: "previousWord",
+	CTRL_RIGHT: "nextWord",
+	ALT_D: "deleteNextWord",
+	CTRL_W: "deletePreviousWord",
+	CTRL_U: "deleteAllBefore",
+	CTRL_K: "deleteAllAfter"
+}
+
 
 export class Terminal {
     originPos = { x: 0, y: 0 }
@@ -33,6 +55,7 @@ export class Terminal {
     
     
     takeInput({ pos, defaultValue = "" }: { pos: { x: number, y: number } , defaultValue: string }) {
+
         this.moveTo(pos);
         let _inputField = terminal.inputField({
             default: defaultValue,
@@ -49,7 +72,11 @@ export class Terminal {
             setValue: (value: string) => {
                 return this.takeInput({ pos, defaultValue: value });
             },
-            abort: () => _inputField.abort(),
+            abort: function () {
+                _inputField.abort();
+                this.isAborted = true;
+            },
+            isAborted: false,
             redraw: () => _inputField.redraw(),
             key$: new Observable<"ENTER"|"UP"|"DOWN">(observer => {
 
@@ -63,7 +90,8 @@ export class Terminal {
                     _inputField.abort();
                 }
             }),
-            getCaretPos: () => _inputField.getCursorPosition()
+            getCaretPos: () => _inputField.getCursorPosition(),
+            pos
         }
     }
 
@@ -91,3 +119,5 @@ export interface TerminalConfig {
     originPos?: { x: number, y: number },
     determineOriginPos?: boolean
 }
+
+export type InputField = ReturnType<Terminal["takeInput"]>;
