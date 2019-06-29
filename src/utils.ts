@@ -97,33 +97,33 @@ export const cyclicAdd = (x: number, a: number, m: number) => (x + a + m) % m;
 
 
 export const spreadMap =
-	<A extends any[], R>(fn: (...args: A) => R) =>
-		map((args: A) => fn(...args))
+    <A extends any[], R>(fn: (...args: A) => R) =>
+        map((args: A) => fn(...args))
 
 export const combineLatest =
-	<T extends { [k: string]: Observable<unknown> }>($Map: T): Observable<{
-		[K in keyof T]: ObservedValueOf<T[K]>
-	}> =>
-		(([ks, $s]) => 
-			rxjsCombineLatest(...$s).pipe(
-				map(vs => 
-					vs.reduce((vMap, v, i) => 
-						({
-							...vMap,
-							[ks[i]]: v
-						}),
-						{}
-					)
-				)
-			)
-		)(
-			Object.entries($Map).reduce(([ks, vs], kv) => 
-				[
-					[...ks, kv[0]],
-					[...vs, kv[1]]
-				],
-				[[], []] as [string[], Observable<unknown>[]]
-			)
+    <T extends { [k: string]: Observable<unknown> }>($Map: T): Observable<{
+        [K in keyof T]: ObservedValueOf<T[K]>
+    }> =>
+        (([ks, $s]) => 
+            rxjsCombineLatest(...$s).pipe(
+                map(vs => 
+                    vs.reduce((vMap, v, i) => 
+                        ({
+                            ...vMap,
+                            [ks[i]]: v
+                        }),
+                        {}
+                    )
+                )
+            )
+        )(
+            Object.entries($Map).reduce(([ks, vs], kv) => 
+                [
+                    [...ks, kv[0]],
+                    [...vs, kv[1]]
+                ],
+                [[], []] as [string[], Observable<unknown>[]]
+            )
         );
         
 export const bindMethod =
