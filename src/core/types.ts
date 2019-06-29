@@ -2,12 +2,12 @@ import { Observable } from "rxjs";
 
 export type CogniOutput = {
 	stdoutText: string,
-	stdinFeeds: Array<{
-		text: string,
-		pos: {
+	stdinAreas: Array<{
+		position: {
 			x: number,
 			y: number
-		}
+		},
+		length: number
 	}>,
 	didExit: boolean
 }

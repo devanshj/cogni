@@ -1,5 +1,5 @@
 import { cogniOutputFor } from ".";
-import { toCogniProcess } from "../run/terminal/drivers/cogni/process-port";
+import { toCogniProcess } from "../process-port";
 import { spawn } from "child_process";
 import { CogniInput, CogniOutput } from "./types";
 import { toTag, Omit } from "../utils";
@@ -16,7 +16,7 @@ describe("cogniOutput", () => {
             },
             cogniOutput: {
                 stdoutText: "",
-                stdinFeeds: [], 
+                stdinAreas: [], 
                 didExit: true
             }
         },
@@ -27,7 +27,7 @@ describe("cogniOutput", () => {
             },
             cogniOutput: {
                 stdoutText: "stdout-1",
-                stdinFeeds: [],
+                stdinAreas: [],
                 didExit: true
             }
         },
@@ -38,9 +38,9 @@ describe("cogniOutput", () => {
             },
             cogniOutput: {
                 stdoutText: "stdin-1\n",
-                stdinFeeds: [{
-                    pos: { y: 0, x: 0 },
-                    text: "stdin-1"
+                stdinAreas: [{
+                    position: { y: 0, x: 0 },
+                    length: "stdin-1".length
                 }],
                 didExit: true
             }
@@ -52,9 +52,9 @@ describe("cogniOutput", () => {
             },
             cogniOutput: {
                 stdoutText: "1\n2",
-                stdinFeeds: [{
-                    pos: { y: 0, x: 0 },
-                    text: "1"
+                stdinAreas: [{
+                    position: { y: 0, x: 0 },
+                    length: "1".length
                 }],
                 didExit: true
             }
@@ -66,9 +66,9 @@ describe("cogniOutput", () => {
             },
             cogniOutput: {
                 stdoutText: "",
-                stdinFeeds: [{
-                    pos: { y: 0, x: 0 },
-                    text: ""
+                stdinAreas: [{
+                    position: { y: 0, x: 0 },
+                    length: "".length
                 }],
                 didExit: false
             }
@@ -80,9 +80,9 @@ describe("cogniOutput", () => {
             },
             cogniOutput: {
                 stdoutText: "stdout-1stdin-1\n",
-                stdinFeeds: [{
-                    pos: { y: 0, x: 8 },
-                    text: "stdin-1"
+                stdinAreas: [{
+                    position: { y: 0, x: 8 },
+                    length: "stdin-7".length
                 }],
                 didExit: true
             }
@@ -90,16 +90,16 @@ describe("cogniOutput", () => {
         {
             cogniInput: {
                 spawnArgs: python`input(""); input("")`,
-                feeds: ["stdin-1", "stdin-2"]
+                feeds: ["mango", "banana"]
             },
             cogniOutput: {
-                stdoutText: "stdin-1\nstdin-2\n",
-                stdinFeeds: [{
-                    pos: { y: 0, x: 0 },
-                    text: "stdin-1"
+                stdoutText: "mango\nbanana\n",
+                stdinAreas: [{
+                    position: { y: 0, x: 0 },
+                    length: "mango".length
                 }, {
-                    pos: { y: 1, x: 0 },
-                    text: "stdin-2"
+                    position: { y: 1, x: 0 },
+                    length: "banana".length
                 }],
                 didExit: true
             }
@@ -111,23 +111,23 @@ describe("cogniOutput", () => {
             },
             cogniOutput: {
                 stdoutText: "stdout-1stdout-2",
-                stdinFeeds: [],
+                stdinAreas: [],
                 didExit: true
             }
         },
         {
             cogniInput: {
                 spawnArgs: python`a = int(input("a = ")); b = int(input("b = ")); print("a + b = " + str(a + b), end="")`,
-                feeds: ["1", "2"]
+                feeds: ["1", "20"]
             },
             cogniOutput: {
-                stdoutText: "a = 1\nb = 2\na + b = 3",
-                stdinFeeds: [{
-                    pos: { y: 0, x: 4 },
-                    text: "1"
+                stdoutText: "a = 1\nb = 20\na + b = 21",
+                stdinAreas: [{
+                    position: { y: 0, x: 4 },
+                    length: "1".length
                 }, {
-                    pos: { y: 1, x: 4 },
-                    text: "2"
+                    position: { y: 1, x: 4 },
+                    length: "20".length
                 }],
                 didExit: true
             }
@@ -139,12 +139,12 @@ describe("cogniOutput", () => {
             },
             cogniOutput: {
                 stdoutText: "a = 1\nb = ",
-                stdinFeeds: [{
-                    pos: { y: 0, x: 4 },
-                    text: "1"
+                stdinAreas: [{
+                    position: { y: 0, x: 4 },
+                    length: "1".length
                 }, {
-                    pos: { y: 1, x: 4 },
-                    text: ""
+                    position: { y: 1, x: 4 },
+                    length: "".length
                 }],
                 didExit: false
             }
@@ -165,6 +165,7 @@ describe("cogniOutput", () => {
             feeds
         });
         expect(actualCogniOutput).toStrictEqual(expectedCogniOutput);
+        process.removeAllListeners();
         !process.killed && process.kill();
     })
 

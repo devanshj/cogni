@@ -5,14 +5,14 @@ import { toBehaviorSubject } from "../utils";
 import { CogniInput, CogniOutput } from "./types";
 import fallback from "./operators/fallback";
 
-export const NO_STDOUT_FALLBACK_TIMEOUT = 200;
+export const NO_STDOUT_FALLBACK_TIMEOUT = 500;
 
 type TerminalState = {
     stdout: {
         text: string,
         curPos: {x: number, y: number }
     },
-    stdinFeeds: CogniOutput["stdinFeeds"]
+    stdinAreas: CogniOutput["stdinAreas"]
 };
 
 const curPosReducer = ({ x, y }: TerminalState["stdout"]["curPos"], data: string) =>
@@ -37,22 +37,22 @@ const stdoutReducer = ({ text, curPos: { x, y } }: TerminalState["stdout"], data
 export const cogniOutputFor = ({ process, feeds }: CogniInput): Promise<CogniOutput> => {
     let { exit$, stdout$, stdinWrite } = process;
     let didExit$ = toBehaviorSubject(exit$.pipe(mapTo(true)), false);
-    let noStdinFeeds$ = new Subject<true>();
+    let noStdinAreas$ = new Subject<true>();
 
     return stdout$.pipe(
         fallback(null, NO_STDOUT_FALLBACK_TIMEOUT),
         map(x => x === null ? "" : x),
         scan(
-            ({ stdout, stdinFeeds }: TerminalState, data: string) => {
+            ({ stdout, stdinAreas }: TerminalState, data: string) => {
 
                 stdout = stdoutReducer(stdout, data);
 
                 let nextFeed = feeds.shift();
                 if (nextFeed) {
                     if (!didExit$.value) {
-                        stdinFeeds = [...stdinFeeds, {
-                            pos: stdout.curPos,
-                            text: nextFeed
+                        stdinAreas = [...stdinAreas, {
+                            position: stdout.curPos,
+                            length: nextFeed.length
                         }];
 
                         try {
@@ -63,41 +63,41 @@ export const cogniOutputFor = ({ process, feeds }: CogniInput): Promise<CogniOut
                         }
                     }
                 } else {
-                    noStdinFeeds$.next(true);
+                    noStdinAreas$.next(true);
                 }
 
-                return { stdout, stdinFeeds }
+                return { stdout, stdinAreas }
             }, {
                 stdout: {
                     text: "",
                     curPos: { x: 0, y: 0 }
                 },
-                stdinFeeds: []
+                stdinAreas: []
             }
         ),
-        map(({ stdout, stdinFeeds }) => ({
+        map(({ stdout, stdinAreas }) => ({
             stdoutText: stdout.text,
-            stdinFeeds
+            stdinAreas
         })),
         takeUntil(merge(
             exit$,
-            noStdinFeeds$.pipe(delay(NO_STDOUT_FALLBACK_TIMEOUT))
+            noStdinAreas$.pipe(delay(NO_STDOUT_FALLBACK_TIMEOUT))
         ))
     )
     .toPromise()
-    .then(({ stdoutText, stdinFeeds }) => {
+    .then(({ stdoutText, stdinAreas }) => {
         didExit$.complete();
 
         if (!didExit$.value) {
-            stdinFeeds.push({
-                pos: curPosReducer({ x: 0, y: 0 }, stdoutText),
-                text: ""
+            stdinAreas.push({
+                position: curPosReducer({ x: 0, y: 0 }, stdoutText),
+                length: 0
             });
         }
 
         return Promise.resolve({
             stdoutText,
-            stdinFeeds,
+            stdinAreas,
             didExit: didExit$.value
         });
     });

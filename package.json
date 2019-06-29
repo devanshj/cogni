@@ -5,17 +5,13 @@
 	"dependencies": {
 		"@types/jest": "^24.0.13",
 		"@types/node": "^12.0.4",
-		"@types/terminal-kit": "^1.28.0",
-		"@types/window-size": "^0.2.4",
 		"chokidar": "^3.0.0",
-		"commander": "^2.20.0",
 		"jest": "^24.8.0",
-		"rxjs": "^6.5.1",
-		"rxjs-from-event-typed": "0.0.5",
-		"terminal-kit": "^1.28.0",
+		"rxjs": "^6.5.2",
+		"rxjs-from-emitter": "0.0.3",
+		"staerm": "^3.0.0",
 		"ts-jest": "^24.0.2",
-		"typescript": "^3.4.5",
-		"window-size": "^1.1.1"
+		"typescript": "^3.5.2"
 	},
 	"scripts": {},
 	"author": "Devansh Jethmalani",

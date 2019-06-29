@@ -101,7 +101,7 @@ export const spreadMap =
 		map((args: A) => fn(...args))
 
 export const combineLatest =
-	<T extends { [k: string]: Observable<{}> }>($Map: T): Observable<{
+	<T extends { [k: string]: Observable<unknown> }>($Map: T): Observable<{
 		[K in keyof T]: ObservedValueOf<T[K]>
 	}> =>
 		(([ks, $s]) => 
@@ -122,6 +122,18 @@ export const combineLatest =
 					[...ks, kv[0]],
 					[...vs, kv[1]]
 				],
-				[[], []] as [string[], Observable<{}>[]]
+				[[], []] as [string[], Observable<unknown>[]]
 			)
-		);
+        );
+        
+export const bindMethod =
+    <T extends object, P extends keyof T = keyof T>(
+        stuff: T,
+        method: {
+            [K in P]:
+                T[K] extends Function
+                    ? K
+                    : never;
+        }[P]
+    ) =>
+        (stuff[method] as unknown as Function).bind(stuff);

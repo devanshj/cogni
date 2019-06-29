@@ -1,10 +1,10 @@
-import { fromEvent } from "rxjs-from-event-typed";
+import { fromEmitter } from "rxjs-from-emitter";
 import { Observable, merge, race, timer } from "rxjs";
-import { map, buffer, debounceTime, delayWhen } from "rxjs/operators";
+import { map, buffer, debounceTime, delayWhen, share } from "rxjs/operators";
 import { ChildProcess } from "child_process";
 
 import { Readable } from "stream";
-import { CogniInput, NO_STDOUT_FALLBACK_TIMEOUT } from "../../../../../core";
+import { CogniInput, NO_STDOUT_FALLBACK_TIMEOUT } from "../core";
 
 
 export const STDOUT_BUFFER_DEBOUNCE_TIME = 50;
@@ -13,16 +13,16 @@ export const STDOUT_BUFFER_DEBOUNCE_TIME = 50;
 
 export const toCogniProcess = (childProcess: ChildProcess): CogniInput["process"] => {
 
-    const fromDataStream = (stream: Readable) => 
-        (fromEvent(stream, "data") as Observable<Buffer>).pipe(
+    const fromDataStream = (stream: Readable) =>
+        (fromEmitter(stream).eventStrict("data") as Observable<Buffer>).pipe(
             map(data => data.toString()),
             bufferDebounce(STDOUT_BUFFER_DEBOUNCE_TIME),
             map(chunks => chunks.reduce((a, b) => a + b, ""))
         )
 
-    let stdout$ = fromDataStream(childProcess.stdout!);
-    let stderr$ = fromDataStream(childProcess.stderr!);
-    let exit$ = fromEvent(childProcess, "exit").pipe(map(([x]) => x!));
+    let stdout$ = fromDataStream(childProcess.stdout!).pipe(share());
+    let stderr$ = fromDataStream(childProcess.stderr!).pipe(share());
+    let exit$ = fromEmitter(childProcess).eventStrict("exit").pipe(map(([x]) => x!), share());
 
     let actualStdout$ = merge(stdout$, stderr$);
     
