@@ -11,7 +11,6 @@ export function log(...things: any[]) {
                 : thing
         ).join(" ") + "\n"
     );
-    return true;
 }
 
 export const logWithTag =

@@ -20,3 +20,7 @@ export type CogniInput = {
     },
     feeds: Array<string>
 }
+
+export type CogniConfig = {
+    noStdoutFallbackTimeout: number
+}

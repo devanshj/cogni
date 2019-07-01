@@ -1,106 +1,82 @@
-import { Subject, merge, of } from "rxjs";
-import { scan, map, takeUntil, delay, catchError, mapTo } from "rxjs/operators";
+import { Subject, merge } from "rxjs";
+import { scan, map, takeUntil, delay, mapTo, finalize } from "rxjs/operators";
 import { toBehaviorSubject } from "../utils";
 
-import { CogniInput, CogniOutput } from "./types";
+import { CogniInput, CogniOutput, CogniConfig } from "./types";
 import fallback from "./operators/fallback";
-
-export const NO_STDOUT_FALLBACK_TIMEOUT = 500;
-
-type TerminalState = {
-    stdout: {
-        text: string,
-        curPos: {x: number, y: number }
-    },
-    stdinAreas: CogniOutput["stdinAreas"]
-};
-
-const curPosReducer = ({ x, y }: TerminalState["stdout"]["curPos"], data: string) =>
-    (lines =>
-        ({
-            y: lines.length === 1
-                ? y
-                : y + (lines.length - 1),
-            x: lines.length === 1
-                ? x + lines[0].length
-                : lines.slice(-1)[0].length
-        })
-    )(data.split(/\n/g))
+import { TerminalState, pty } from "./pty";
 
 
-const stdoutReducer = ({ text, curPos: { x, y } }: TerminalState["stdout"], data: string) => ({
-    text: text + data,
-    curPos: curPosReducer({ x, y }, data)
-});
-
-
-export const cogniOutputFor = ({ process, feeds }: CogniInput): Promise<CogniOutput> => {
+export const toCogniOutput = (
+    { process, feeds }: CogniInput,
+    config: Partial<CogniConfig> = defaultConfig
+): Promise<CogniOutput> => {
+    let { noStdoutFallbackTimeout } = { ...config, ...defaultConfig };
     let { exit$, stdout$, stdinWrite } = process;
+    
+
     let didExit$ = toBehaviorSubject(exit$.pipe(mapTo(true)), false);
     let noStdinAreas$ = new Subject<true>();
+    feeds = [...feeds];
 
     return stdout$.pipe(
-        fallback(null, NO_STDOUT_FALLBACK_TIMEOUT),
+        fallback(null, noStdoutFallbackTimeout),
         map(x => x === null ? "" : x),
         scan(
-            ({ stdout, stdinAreas }: TerminalState, data: string) => {
+            (term: TerminalState, data: string) => {
 
-                stdout = stdoutReducer(stdout, data);
+                term = pty.stdoutWrite(term, data);
 
                 let nextFeed = feeds.shift();
                 if (nextFeed) {
                     if (!didExit$.value) {
-                        stdinAreas = [...stdinAreas, {
-                            position: stdout.curPos,
-                            length: nextFeed.length
-                        }];
-
+                        let writeSuccessful = true;
                         try {
                             stdinWrite(nextFeed + "\n");
-                            stdout = stdoutReducer(stdout, nextFeed + "\n");
                         } catch {
-
+                            noStdinAreas$.next(true);
+                            writeSuccessful = false     
+                        }
+                        if (writeSuccessful) {
+                            term = pty.stdinWrite(term, nextFeed);
+                            term = pty.stdoutWrite(term, "\n");
                         }
                     }
                 } else {
                     noStdinAreas$.next(true);
                 }
 
-                return { stdout, stdinAreas }
+                return term;
             }, {
-                stdout: {
-                    text: "",
-                    curPos: { x: 0, y: 0 }
-                },
+                text: "",
+                curPos: { x: 0, y: 0 },
                 stdinAreas: []
-            }
+            } as TerminalState
         ),
-        map(({ stdout, stdinAreas }) => ({
-            stdoutText: stdout.text,
-            stdinAreas
-        })),
         takeUntil(merge(
             exit$,
-            noStdinAreas$.pipe(delay(NO_STDOUT_FALLBACK_TIMEOUT))
+            noStdinAreas$.pipe(delay(noStdoutFallbackTimeout))
         ))
     )
     .toPromise()
-    .then(({ stdoutText, stdinAreas }) => {
+    .then(term => {
         didExit$.complete();
 
         if (!didExit$.value) {
-            stdinAreas.push({
-                position: curPosReducer({ x: 0, y: 0 }, stdoutText),
-                length: 0
-            });
+            term = pty.stdinWrite(term, "");
         }
 
         return Promise.resolve({
-            stdoutText,
-            stdinAreas,
+            stdoutText: term.text,
+            stdinAreas: term.stdinAreas,
             didExit: didExit$.value
         });
     });
 }
+
+export const defaultConfig = {
+    noStdoutFallbackTimeout: 500
+}
+
 
 export * from "./types";

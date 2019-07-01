@@ -1,5 +1,5 @@
 import { Observable, combineLatest } from "rxjs";
-import { map, scan, startWith, withLatestFrom, filter, distinctUntilChanged } from "rxjs/operators";
+import { map, scan, withLatestFrom, filter, startWith, distinctUntilChanged } from "rxjs/operators";
 
 export const toFocusedAreaIndex =
     (navigation$: Observable<"UP" | "DOWN">, areasLength$: Observable<number>) =>
@@ -14,11 +14,10 @@ export const toFocusedAreaIndex =
                     0
                 ),
                 startWith(0),
-                scan((i, a) => i + a)
+                scan((i, a) => i + a),
             ),
             areasLength$
         ).pipe(
             map(([i, m]) => m === 0 ? null : (i + m) % m),
-            startWith(null),
             distinctUntilChanged()
         );

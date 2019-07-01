@@ -4,19 +4,21 @@ import { map, buffer, debounceTime, delayWhen, share } from "rxjs/operators";
 import { ChildProcess } from "child_process";
 
 import { Readable } from "stream";
-import { CogniInput, NO_STDOUT_FALLBACK_TIMEOUT } from "../core";
+import { CogniInput, CogniConfig } from "../core";
 
-
-export const STDOUT_BUFFER_DEBOUNCE_TIME = 50;
-
-
-
-export const toCogniProcess = (childProcess: ChildProcess): CogniInput["process"] => {
+export const toCogniProcess = (
+    childProcess: ChildProcess,
+    config: Partial<CogniConfig> = defaultConfig
+): CogniInput["process"] => {
+    let { 
+        noStdoutFallbackTimeout,
+        stdoutBufferDebounceTime
+    } = { ...config, ...defaultConfig };
 
     const fromDataStream = (stream: Readable) =>
         (fromEmitter(stream).eventStrict("data") as Observable<Buffer>).pipe(
             map(data => data.toString()),
-            bufferDebounce(STDOUT_BUFFER_DEBOUNCE_TIME),
+            bufferDebounce(stdoutBufferDebounceTime),
             map(chunks => chunks.reduce((a, b) => a + b, ""))
         )
 
@@ -30,7 +32,7 @@ export const toCogniProcess = (childProcess: ChildProcess): CogniInput["process"
         exit$: exit$.pipe(
             delayWhen(() => race(
                 actualStdout$,
-                timer(NO_STDOUT_FALLBACK_TIMEOUT)
+                timer(noStdoutFallbackTimeout)
             ))
         ),
         stdout$: actualStdout$,
@@ -44,7 +46,11 @@ export const toCogniProcess = (childProcess: ChildProcess): CogniInput["process"
     };
 }
 
-
+const defaultConfig = {
+    noStdoutFallbackTimeout: 500,
+    stdoutBufferDebounceTime: 50
+}
+type Config = typeof defaultConfig;
 
 const bufferDebounce = (time: number) =>
     <T>(source$: Observable<T>) =>

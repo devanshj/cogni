@@ -1,7 +1,7 @@
 import fallback from "./fallback";
 import { createScheduler } from "../../testing/rxjs";
 
-describe("fallback operator", () => {
+describe("cogni/fallback-operator", () => {
 
     it.each([{
         in$:     "----------|",

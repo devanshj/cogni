@@ -1,12 +1,12 @@
-import { cogniOutputFor } from ".";
+import { toCogniOutput } from ".";
 import { toCogniProcess } from "../process-port";
 import { spawn } from "child_process";
 import { CogniInput, CogniOutput } from "./types";
-import { toTag, Omit } from "../utils";
+import { toTag } from "../utils";
 
 const python = toTag((code: string): [string, string[]] => ["python", ["-c", code]])
 
-describe("cogniOutput", () => {
+describe("cogni/core", () => {
 
     it.each([
         {
@@ -82,7 +82,7 @@ describe("cogniOutput", () => {
                 stdoutText: "stdout-1stdin-1\n",
                 stdinAreas: [{
                     position: { y: 0, x: 8 },
-                    length: "stdin-7".length
+                    length: "stdin-1".length
                 }],
                 didExit: true
             }
@@ -160,7 +160,7 @@ describe("cogniOutput", () => {
         let process = spawn(...spawnArgs);
         process.stderr.on("data", data => console.log(data.toString()));
 
-        const actualCogniOutput = await cogniOutputFor({
+        const actualCogniOutput = await toCogniOutput({
             process: toCogniProcess(process),
             feeds
         });
@@ -169,5 +169,14 @@ describe("cogniOutput", () => {
         !process.killed && process.kill();
     })
 
+    it("does not mutate the feeds", async () => {
+        let originalFeeds = ["hello"];
+        let feeds = [...originalFeeds];
+        await toCogniOutput({
+            process: toCogniProcess(spawn(...python`print(input("name? "))`)),
+            feeds: feeds
+        });
+        expect(feeds).toStrictEqual(originalFeeds);
+    })
 })
 

@@ -6,6 +6,5 @@
 		"noImplicitAny": true,
 		"esModuleInterop": true,
 		"outDir": "./dist"
-	},
-	"exclude": ["./del"]
+	}
 }
