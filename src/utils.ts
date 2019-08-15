@@ -139,3 +139,12 @@ export const bindMethod =
 export const areArrayEqual = <T>(as: T[], bs: T[]) =>
     as.length === bs.length &&
     as.every((a, i) => a === bs[i])
+
+export const assertType =
+    <T>() =>
+        ($: Observable<any>): Observable<T> => $
+
+export const use =
+    <A extends any[]>(...args: A) =>
+        ({ as: <R>(fn: (...args: A) => R) =>
+            fn(...args) })
