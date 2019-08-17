@@ -1,7 +1,7 @@
 {
 	"name": "cogni",
 	"private": true,
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"dependencies": {
 		"@types/array.prototype.flatmap": "^1.2.0",
 		"@types/node": "^12.0.10",
@@ -9,7 +9,7 @@
 		"chokidar": "^3.0.1",
 		"rxjs": "^6.5.2",
 		"rxjs-from-emitter": "0.0.6",
-		"staerm": "^3.0.1"
+		"staerm": "^3.0.2"
 	},
 	"scripts": {},
 	"author": "Devansh Jethmalani",
@@ -23,8 +23,5 @@
 		"jest": "^24.8.0",
 		"ts-jest": "^24.0.2",
 		"typescript": "^3.5.2"
-	},
-	"pkg": {
-		"scripts": "dist/**/*.js"
 	}
 }

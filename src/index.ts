@@ -1,4 +1,2 @@
-import flatMap from "array.prototype.flatmap";
-flatMap.shim();
-
+require("./polyfills/index.js");
 require("./cli/index.js")

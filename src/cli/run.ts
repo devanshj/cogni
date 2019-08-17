@@ -1,20 +1,29 @@
-import { lines, grey, println, red, clear, print } from "./utils";
 import { t, command, option, argument } from "./targs";
-import { terminal, withNodeProcess } from "staerm";
-import { BehaviorSubject, Observable, Subject } from "rxjs";
 import { ui } from "../ui";
-import { spawn, ChildProcess, exec } from "child_process";
 import { toCogniOutput } from "../core";
 import { toCogniProcess } from "../process-port";
-import { use, assertType } from "../utils";
+import { terminal, withNodeProcess } from "staerm";
+
 import chokidar from "chokidar"
-import { fromEmitter } from "rxjs-from-emitter";
-import { promisify } from "util";
 import { emitKeypressEvents } from "readline";
+import { spawn, ChildProcess, exec } from "child_process";
+
+import { BehaviorSubject, Observable, Subject } from "rxjs";
 import { switchMap, take } from "rxjs/operators";
+import { fromEmitter } from "rxjs-from-emitter";
+import { lines, grey, println, red, clear, print } from "./utils";
+import { use, assertType } from "../utils";
+import { promisify } from "util";
+
 
 const run = command({
-    action: async ([cogniProcess], { watchGlobs, buildProcess, showBuildOutput }) => {
+    action: async ([cogniProcess], {
+        watchGlobs,
+        buildProcess,
+        showBuildOutput,
+        noStdoutFallbackTimeout,
+        stdoutBufferDebounceTime
+    }) => {
         
         // ---
         // interactive check
@@ -86,7 +95,7 @@ const run = command({
                 if (unsubscribe$.value) return;
                 println(exitCode === 0 ? "Successful" : "Failed")
 
-                if (showBuildOutput) {
+                if (showBuildOutput || exitCode !== 0) {    
                     println();
                     if (stdout) {
                         println("stdout:")
@@ -136,7 +145,10 @@ const run = command({
             }),
             spawnProcess: () =>
                 spawnProcess()
-                .then(p => p !== null ? toCogniProcess(p) : null),
+                .then(p => p !== null ? toCogniProcess(p, {
+                    noStdoutFallbackTimeout,
+                    stdoutBufferDebounceTime
+                }) : null),
             toCogniOutput,
             refresh$
         }).subscribe(state.set);
@@ -211,6 +223,11 @@ const run = command({
                 `try incresing this value.`)
             ),
             parseErrorExamples: [`{{identifier}} 50`]
+        }),
+        "debug": option({
+            identifiers: ["--debug"],
+            description: "Logs debug information in logs.txt",
+            type: t.compose(t.boolean(), t.optional(false))
         })
     }
 })

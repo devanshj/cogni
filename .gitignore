@@ -2,3 +2,6 @@
 /dist
 /.vscode
 /del
+/.cache
+/build
+/bundled

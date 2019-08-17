@@ -1,23 +1,23 @@
 import { toStaermState } from "./state/staerm-state";
 
 import { KeypressData, t as staermT } from "staerm";
-import { CogniInput, CogniOutput } from "../core";
+import { Cogni } from "../core";
 
-import { EMPTY, from, merge, Observable, of, Subject } from "rxjs";
+import { from, merge, Observable, of, Subject } from "rxjs";
 import { distinctUntilChanged, filter, map, share, switchMap, withLatestFrom, delay, scan, mergeMap } from "rxjs/operators";
-import { areArrayEqual, notNull, splice } from "../utils";
+import { notNull, splice } from "../utils";
 
 
 export const ui = (
 	{ keypress$, refresh$, spawnProcess, toCogniOutput }: {
 		keypress$: Observable<KeypressData>,
 		refresh$: Observable<true>,
-		toCogniOutput: (input: CogniInput) => Promise<CogniOutput>,
-		spawnProcess: () => Promise<CogniInput["process"] | null>
+		toCogniOutput: (input: Cogni.Input) => Promise<Cogni.Output>,
+		spawnProcess: () => Promise<Cogni.Input["process"] | null>
 	}
 ) => {
 	
-	const cogniInput$ = new Subject<CogniInput>();
+	const cogniInput$ = new Subject<Cogni.Input>();
 	const cogniOutput$ = cogniInput$.pipe(
 		switchMap(i => from(toCogniOutput(i))),
 		share()
@@ -93,7 +93,11 @@ export const ui = (
                     ...newFeeds
                 )
             ),
-			distinctUntilChanged(areArrayEqual)
+			distinctUntilChanged(
+                (as, bs) =>
+                    as.length === bs.length &&
+                    as.every((a, i) => a === bs[i])
+            )
 		),
 		of([] as string[]).pipe(delay(0))
 	)
@@ -103,7 +107,7 @@ export const ui = (
 			feeds,
 			process: await spawnProcess()
         })),
-        filter((i): i is CogniInput => i.process !== null)
+        filter((i): i is Cogni.Input => i.process !== null)
 	).subscribe(cogniInput$);
 	
 	refresh$.pipe(
@@ -112,7 +116,7 @@ export const ui = (
 			feeds,
 			process: await spawnProcess()
 		})),
-        filter((i): i is CogniInput => i.process !== null)
+        filter((i): i is Cogni.Input => i.process !== null)
 	).subscribe(cogniInput$);
 
 	return staerm$;

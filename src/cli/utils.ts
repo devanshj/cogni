@@ -35,4 +35,4 @@ export const red = (s: string) => "\u001B[31m" + s + "\u001B[39m";
 
 export const print = (x: string = "") => process.stdout.write(padded(x));
 export const println = (x: string = "") => process.stdout.write(padded(x) + "\n");
-export const clear = () => process.stdout.write("\u001Bc");
+export const clear = () => process.stdout.write("\u001B[2J" + "\u001B[1;1H");

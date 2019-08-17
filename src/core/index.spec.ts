@@ -1,12 +1,15 @@
 import { toCogniOutput } from ".";
 import { toCogniProcess } from "../process-port";
 import { spawn } from "child_process";
-import { CogniInput, CogniOutput } from "./types";
+import { Cogni } from "./types";
 import { toTag } from "../utils";
 
-const python = toTag((code: string): [string, string[]] => ["python", ["-c", code]])
+const python = toTag(
+    (code: string): [string, string[]] =>
+        ["python", ["-c", code]]
+);
 
-describe("cogni/core", () => {
+describe("cogni-core/to-cogni-output", () => {
 
     it.each([
         {
@@ -153,8 +156,8 @@ describe("cogni/core", () => {
         cogniInput: { spawnArgs, feeds },
         cogniOutput: expectedCogniOutput
     }: {
-        cogniInput: Omit<CogniInput, "process"> & { spawnArgs: [string, string[]] },
-        cogniOutput: CogniOutput
+        cogniInput: Omit<Cogni.Input, "process"> & { spawnArgs: [string, string[]] },
+        cogniOutput: Cogni.Output
     }) => {
         
         let process = spawn(...spawnArgs);

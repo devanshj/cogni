@@ -1,7 +1,11 @@
 import { spawn, ChildProcess } from "child_process";
 import { toCogniProcess } from ".";
-import { nexter, toBehaviorSubject, toTag } from "../utils";
+
+import { nexter } from "../testing/utils";
 import { take, mapTo } from "rxjs/operators";
+import { toTag, toBehaviorSubject } from "../utils";
+
+
 
 const testProcess = (process: ChildProcess) => {
     let { stdout$, stdinWrite, exit$ } = toCogniProcess(process);
@@ -25,7 +29,7 @@ const python = toTag(code =>
 ));
 
 
-describe("port", () => {
+describe("cogni/to-cogni-process", () => {
     
     it.concurrent("works for process-empty", async () => {
         let { expectRunning, expectWillExit } = python``;

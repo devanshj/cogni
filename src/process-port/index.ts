@@ -4,12 +4,12 @@ import { map, buffer, debounceTime, delayWhen, share } from "rxjs/operators";
 import { ChildProcess } from "child_process";
 
 import { Readable } from "stream";
-import { CogniInput, CogniConfig } from "../core";
+import { Cogni } from "../core";
 
 export const toCogniProcess = (
     childProcess: ChildProcess,
-    config: Partial<CogniConfig> = defaultConfig
-): CogniInput["process"] => {
+    config: Partial<Config> = defaultConfig
+): Cogni.Input["process"] => {
     let { 
         noStdoutFallbackTimeout,
         stdoutBufferDebounceTime

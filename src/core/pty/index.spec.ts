@@ -1,6 +1,6 @@
 import { pty, TerminalState } from ".";
 
-describe("cogni/pty", () => {
+describe("cogni-core/pty", () => {
     it("works", () => {
         let term: TerminalState = {
             text: "",

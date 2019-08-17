@@ -2,15 +2,15 @@ import { Subject, merge } from "rxjs";
 import { scan, map, takeUntil, delay, mapTo } from "rxjs/operators";
 import { toBehaviorSubject } from "../utils";
 
-import { CogniInput, CogniOutput, CogniConfig } from "./types";
+import { Cogni } from "./types";
 import fallback from "./operators/fallback";
 import { TerminalState, pty } from "./pty";
 
 
 export const toCogniOutput = (
-    { process, feeds }: CogniInput,
-    config: Partial<CogniConfig> = defaultConfig
-): Promise<CogniOutput> => {
+    { process, feeds }: Cogni.Input,
+    config: Partial<Cogni.Config> = defaultConfig
+): Promise<Cogni.Output> => {
     let { noStdoutFallbackTimeout } = { ...config, ...defaultConfig };
     let { exit$, stdout$, stdinWrite } = process;
     

@@ -1,7 +1,6 @@
-import { Observable, of, EMPTY, combineLatest } from "rxjs";
 import { KeypressData } from "staerm";
+import { Observable, of, EMPTY, combineLatest } from "rxjs";
 import { switchMap, withLatestFrom, filter, map, startWith, scan, distinctUntilChanged } from "rxjs/operators";
-
 
 export const toNavigation =
     () =>
