@@ -9,7 +9,7 @@
 		"chokidar": "^3.0.1",
 		"rxjs": "^6.5.2",
 		"rxjs-from-emitter": "0.0.6",
-		"staerm": "^3.0.2"
+		"staerm": "^3.0.3"
 	},
 	"scripts": {},
 	"author": "Devansh Jethmalani",
