@@ -7,7 +7,7 @@ export function log(...things: any[]) {
 		join(process.cwd(), "./logs.txt"),
 		things.map(thing =>
 			typeof thing === "object"
-				? format("%j", thing)
+				? JSON.stringify(thing, null, "  ")
 				: thing
 		).join(" ") + "\n"
 	);
