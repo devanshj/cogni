@@ -39,42 +39,42 @@ export const ui = (
 		cogniOutput$,
 		keypress$
 	);
-    const staermInput$ = staerm$.pipe(map(s => s.input));
-    const staermText$ = staerm$.pipe(map(s => s.text));
+	const staermInput$ = staerm$.pipe(map(s => s.input));
+	const staermText$ = staerm$.pipe(map(s => s.text));
 
-    const focusedAreaIndex$ = staermInput$.pipe(
-        withLatestFrom(
-            cogniOutput$.pipe(map(o => o.stdinAreas))
-        ),
-        map(([input, areas]) =>
-            input === null
-                ? null
-                : areas.findIndex(
-                    ({ position: { x, y } }) =>
-                        input.position.x === x &&
-                        input.position.y === y
-                )
-        )
-    );
+	const focusedAreaIndex$ = staermInput$.pipe(
+		withLatestFrom(
+			cogniOutput$.pipe(map(o => o.stdinAreas))
+		),
+		map(([input, areas]) =>
+			input === null
+				? null
+				: areas.findIndex(
+					({ position: { x, y } }) =>
+						input.position.x === x &&
+						input.position.y === y
+				)
+		)
+	);
     
     
 
 	const stdinAreas$ = 
-        staermInput$.pipe(
-            filter(notNull),
-            withLatestFrom(
-                cogniOutput$.pipe(map(o => o.stdinAreas)),
-                focusedAreaIndex$.pipe(filter(notNull))
-            ),
-            map(([{ position, length }, areas, i]) =>
-                splice(
-                    areas,
-                    i,
-                    1,
-                    { position, length }
-                )
-            )
-        )
+		staermInput$.pipe(
+			filter(notNull),
+			withLatestFrom(
+				cogniOutput$.pipe(map(o => o.stdinAreas)),
+				focusedAreaIndex$.pipe(filter(notNull))
+			),
+			map(([{ position, length }, areas, i]) =>
+				splice(
+					areas,
+					i,
+					1,
+					{ position, length }
+				)
+			)
+		)
 	
 	const stdinFeeds$ = merge(
 		staermText$.pipe(
@@ -84,30 +84,30 @@ export const ui = (
 					({ position: { x, y }, length }) =>
 						staermT.slice(text, { x, y }, { x: x + length, y })
 				)
-            ),
-            scan((feeds, newFeeds) => 
-                splice(
-                    feeds,
-                    0,
-                    newFeeds.length,
-                    ...newFeeds
-                )
-            ),
+			),
+			scan((feeds, newFeeds) => 
+				splice(
+					feeds,
+					0,
+					newFeeds.length,
+					...newFeeds
+				)
+			),
 			distinctUntilChanged(
-                (as, bs) =>
-                    as.length === bs.length &&
-                    as.every((a, i) => a === bs[i])
-            )
+				(as, bs) =>
+					as.length === bs.length &&
+					as.every((a, i) => a === bs[i])
+			)
 		),
 		of([] as string[]).pipe(delay(0))
 	)
 
 	stdinFeeds$.pipe(
-        mergeMap(async feeds => ({
+		mergeMap(async feeds => ({
 			feeds,
 			process: await spawnProcess()
-        })),
-        filter((i): i is Cogni.Input => i.process !== null)
+		})),
+		filter((i): i is Cogni.Input => i.process !== null)
 	).subscribe(cogniInput$);
 	
 	refresh$.pipe(
@@ -116,7 +116,7 @@ export const ui = (
 			feeds,
 			process: await spawnProcess()
 		})),
-        filter((i): i is Cogni.Input => i.process !== null)
+		filter((i): i is Cogni.Input => i.process !== null)
 	).subscribe(cogniInput$);
 
 	return staerm$;
