@@ -7,7 +7,6 @@ import { from, merge, Observable, of, Subject } from "rxjs";
 import { distinctUntilChanged, filter, map, share, switchMap, withLatestFrom, delay, scan, mergeMap } from "rxjs/operators";
 import { notNull, splice } from "../utils";
 
-
 export const ui = (
 	{ keypress$, refresh$, spawnProcess, toCogniOutput }: {
 		keypress$: Observable<KeypressData>,
@@ -22,18 +21,6 @@ export const ui = (
 		switchMap(i => from(toCogniOutput(i))),
 		share()
 	);
-
-	/*const focusedAreaIndex$ = toFocusedAreaIndex(
-		keypress$.pipe(
-			switchMap(({ sequence }) =>
-				sequence === "\u001b[A" ? of("UP" as const) :
-				sequence === "\u001b[B" ? of("DOWN" as const) :
-				// sequence === "\r" ? of("DOWN" as const) :
-				EMPTY
-			)
-		),
-		cogniOutput$.pipe(map(o => o.stdinAreas.length))
-	);*/
 
 	const staerm$ = toStaermState(
 		cogniOutput$,
@@ -57,8 +44,6 @@ export const ui = (
 		)
 	);
     
-    
-
 	const stdinAreas$ = 
 		staermInput$.pipe(
 			filter(notNull),

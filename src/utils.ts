@@ -15,7 +15,8 @@ export const toTag = <R>(fn: (v: string) => R) =>
 			)
 		);
 
-export const notNull = <T>(x: T): x is NonNullable<T> => x !== null
+export const notNull = <T>(x: T): x is Exclude<T, null> => x !== null
+export const notUndefined = <T>(x: T): x is Exclude<T, undefined> => x !== undefined
 
 export const splice = <T>(xs: T[], start: number, deleteCount: number, ...ixs: T[]) => {
 	xs = [...xs];
