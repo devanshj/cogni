@@ -131,7 +131,6 @@ const run = command({
 				chokidar
 				.watch(watchGlobs)
 			)
-			.withMethods("on", "off")
 			.eventStrict("change")
 			.pipe(switchMap(build))
 			.subscribe(() => refresh$.next(true))
