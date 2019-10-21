@@ -2,9 +2,9 @@ import { Cogni } from "../../core";
 import { toNavigation, toFocusedAreaIndex } from "./helpers";
 
 import { Observable, merge } from "rxjs";
-import { withLatestFrom, map, scan, filter } from "rxjs/operators";
+import { withLatestFrom, map, scan } from "rxjs/operators";
 import { KeypressData, TerminalState, r as staermR } from "staerm";
-import { use, notNull } from "../../utils";
+import { use } from "../../utils";
 
 
 export const toStaermState = (
@@ -37,14 +37,10 @@ export const toStaermState = (
 				)
 			),
 			cogniOutput$.pipe(
-				withLatestFrom(
-					focusedAreaIndex$.pipe(
-						filter(notNull)
-					)
-				),
+				withLatestFrom(focusedAreaIndex$),
 				map(([o, i]): Reducer =>
 					state => ({
-						input: use(o.stdinAreas[
+						input: i === null ? null : use(o.stdinAreas[
 							i % o.stdinAreas.length
 						]).as(area =>
 							area
