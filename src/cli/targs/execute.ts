@@ -1,7 +1,7 @@
 import { Targs } from "./types";
 import parseArgv from "./argv-parser";
 import { t } from "./type-parser";
-import { red, brightCyan, padded, grey } from "../utils";
+import { red, brightCyan, padded, grey, println } from "../utils";
 
 
 const execute =  <A extends Targs.ArgumentTuple, O extends Targs.OptionRecord>(
@@ -15,7 +15,7 @@ const execute =  <A extends Targs.ArgumentTuple, O extends Targs.OptionRecord>(
 	let argvOriginal = { argument: [...argv.arguments], options: { ...argv.options } }
 	let commandName = _argv[1];
 	let parsedArgs = [] as string[];
-	let parsedOptions = {} as { [K in string]: string };
+	let parsedOptions = {} as { [K in string]: unknown };
 
 	if ("-h" in argv.options || "--help" in argv.options) {
 		println();
@@ -69,10 +69,6 @@ const execute =  <A extends Targs.ArgumentTuple, O extends Targs.OptionRecord>(
 			.identifiers
 			.filter(identifier => identifier in argv.options)
 
-		if (matchingIdentifiers.length === 0) {
-			continue;
-		}
-
 		if (matchingIdentifiers.length > 1) {
 			println(red(`[!] Error:`))
 			println(`   ${optSpec.identifiers.join(", ")} are aliases for each other you can only use one at a time`)
@@ -84,14 +80,22 @@ const execute =  <A extends Targs.ArgumentTuple, O extends Targs.OptionRecord>(
 			return;
 		}
 
-
-		let identifier = matchingIdentifiers[0];
+		let identifier = matchingIdentifiers[0] as string | undefined;
 		let opt = identifier ? argv.options[identifier] : null;
 		let parser = optSpec.type(optSpec.signatureName);
 		let parsed = parser(opt);
 		let isRequirementFulfilled = optSpec.requires.every(k => 
 			command.options[k].identifiers.some(i => i in argvOriginal.options)
 		);
+
+		if (identifier === undefined) {
+			if (!t.isRequired(optSpec.type)) {
+				isRequirementFulfilled = true;
+				identifier = optSpec.identifiers[0];
+			} else {
+				continue;
+			}
+		}
 
 		if (!isRequirementFulfilled) {
 			println();
@@ -107,8 +111,6 @@ const execute =  <A extends Targs.ArgumentTuple, O extends Targs.OptionRecord>(
 			println();
 			return;
 		}
-
-
 
 		if (!parsed.isValid) {
 			println(red(`[!] Error:`));
@@ -195,15 +197,6 @@ const nth = (n: number, offset = 1) => `${n + offset}${
 	"th"
 }`;
 
-const print = (s: string) =>
-	process.stdout.write(padded(s));
-
-const println = (s: string = "") =>
-	process.stdout.write(padded(s) + "\n");
-
 const wrap = (x: string, p: string = "", s: string = "") => p + x + s;
-
-const repeat = (s: string, n: number) =>
-	Array.from({ length: n }, () => s).join("")
 
 export default execute;

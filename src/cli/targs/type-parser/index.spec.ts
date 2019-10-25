@@ -1,6 +1,5 @@
 import { t } from ".";
 import { Targs } from "../types";
-import { use } from "../../../utils";
 
 describe("t", () => {
     

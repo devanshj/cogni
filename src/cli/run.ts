@@ -24,7 +24,7 @@ const run = command({
 		noStdoutFallbackTimeout,
 		stdoutBufferDebounceTime
 	}) => {
-        
+		
 		// ---
 		// interactive check
 		if (!process.stdin.isTTY) {
@@ -61,7 +61,6 @@ const run = command({
 				println(`   Could not spawn process "${spawnArgs[0]}" (${err.code})`)
 				println();
 				process.exit();
-				resolve(null);
 			});
 
 			if (runningProcess) runningProcess.kill();

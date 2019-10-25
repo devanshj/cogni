@@ -1,11 +1,12 @@
 import { program } from "./targs"
 import run from "./run";
+import alias from "./alias";
 import { banner, bannerSmall } from "./banner";
-import { padded, lines, brightCyan, grey } from "./utils";
+import { padded, lines, brightCyan } from "./utils";
 
-program({
+const cogniProgram = program({
 	name: "cogni",
-	commands: [run],
+	commands: [run, alias],
 	noCommandHelp: () => padded(
 		lines(
 			(process.stdout.columns || 60) > 60
@@ -17,14 +18,13 @@ program({
 			brightCyan("cogni run"),
 			"run process with hot reloading & interactive stdin",
 			"",
-			brightCyan("cogni run-preset"),
-			"(coming soon) run presets for popular languages",
-			grey("so you don't have to write -w and -b flags"),
+			brightCyan("cogni alias"),
+			"Use default aliases and aliases in cogni.config.js",
 			"",
 			brightCyan("cogni pipe"),
 			"(coming soon) pipe stdin to a process with hot reloading",
 			""
 		)
 	)
-})
-.takeArgv(process.argv.slice(1))
+});
+export default cogniProgram;

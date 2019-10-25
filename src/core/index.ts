@@ -1,5 +1,5 @@
 import { Subject, merge } from "rxjs";
-import { scan, map, takeUntil, delay, mapTo } from "rxjs/operators";
+import { scan, map, takeUntil, delay, mapTo, tap } from "rxjs/operators";
 import { toBehaviorSubject } from "../utils";
 
 import { Cogni } from "./types";
