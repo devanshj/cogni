@@ -1,11 +1,11 @@
-import { toStaermState } from "./state/staerm-state";
+import { toState as toState } from "./state";
 
 import { KeypressData, t as staermT } from "staerm";
 import { Cogni } from "../core";
 
 import { from, merge, Observable, of, Subject } from "rxjs";
 import { distinctUntilChanged, filter, map, share, switchMap, withLatestFrom, delay, scan, mergeMap } from "rxjs/operators";
-import { notNull, splice } from "../utils";
+import { splice } from "../utils";
 
 export const ui = (
 	{ keypress$, refresh$, spawnProcess, toCogniOutput }: {
@@ -22,12 +22,14 @@ export const ui = (
 		share()
 	);
 
-	const staerm$ = toStaermState(
+	const state$ = toState(
 		cogniOutput$,
 		keypress$
 	);
+	const staerm$ = state$.pipe(map(s => s.staerm));
 	const staermInput$ = staerm$.pipe(map(s => s.input));
 	const staermText$ = staerm$.pipe(map(s => s.text));
+	const stdinAreas$ = state$.pipe(map(s => s.stdinAreas));
 
 	const focusedAreaIndex$ = staermInput$.pipe(
 		withLatestFrom(
@@ -44,7 +46,7 @@ export const ui = (
 		)
 	);
     
-	const stdinAreas$ = 
+	/*const stdinAreas$ = merge(
 		staermInput$.pipe(
 			filter(notNull),
 			withLatestFrom(
@@ -59,7 +61,26 @@ export const ui = (
 					{ position, length }
 				)
 			)
+		),
+		keypress$.pipe(
+			filter(k => k.sequence === "\r"),
+			withLatestFrom(
+				staermInput$.pipe(filter(notNull)),
+				cogniOutput$.pipe(map(o => o.stdinAreas)),
+				focusedAreaIndex$.pipe(filter(notNull))
+			),
+			map(([_, { length, caretOffset, position }, areas, fI]) => {
+				logWithTag("got input")({ position, length, caretOffset });
+				
+				return areas.map((area, aI) =>
+					aI < fI ? area :
+					aI === fI ? { ...area, length: caretOffset } :
+					aI === fI + 1  ? { ...area, length: length - caretOffset + 1 } :
+					{ ...area, length: areas[aI - 1].length }
+				)
+			})
 		)
+	)*/
 	
 	const stdinFeeds$ = merge(
 		staermText$.pipe(
@@ -103,6 +124,8 @@ export const ui = (
 		})),
 		filter((i): i is Cogni.Input => i.process !== null)
 	).subscribe(cogniInput$);
+
+	
 
 	return staerm$;
 }

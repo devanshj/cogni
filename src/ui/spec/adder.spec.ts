@@ -78,7 +78,6 @@ describe("cogni-ui/adder.py", () => {
 		})
 
 		keypress$.next(key("2"));
-		await staerm();
 		expect(await staerm()).toStrictEqual({
 			text: "a = 1\naa = 2",
 			input: {
