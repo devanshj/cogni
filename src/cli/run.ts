@@ -114,6 +114,9 @@ const run = command({
 					shouldSendKeypress$.next(true);
 					clear();
 					$.next();
+				} else {
+					clear();
+					$.next();
 				}
 			})
 
