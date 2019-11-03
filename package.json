@@ -1,7 +1,7 @@
 {
 	"name": "cogni",
 	"private": true,
-	"version": "0.0.6",
+	"version": "0.0.7",
 	"dependencies": {
 		"@types/array.prototype.flatmap": "^1.2.0",
 		"@types/node": "^12.0.10",
