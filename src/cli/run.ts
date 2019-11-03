@@ -201,16 +201,16 @@ const run = command({
 		"noStdoutFallbackTimeout": option({
 			signatureName: "value",
 			identifiers: ["--no-stdout-fallback-timeout"],
-			type: t.compose(t.number(), t.optional(500)),
+			type: t.compose(t.number(), t.optional(100)),
 			description: lines(
 				`The amount of time in milliseconds to wait before feeding the next stdin line when there is no stdout.`,
-				`Default 500`,
+				`Default 100`,
 				grey(`If the process is taking consecutive stdin feeds without ` +
 				`a stdout between them, then in such case lowering the timeout ` +
 				`will result in faster update of output but beware not to make ` +
 				`it too low or else it result in malformatted output updates.`)
 			),
-			parseErrorExamples: [`{{identifier}} 500`]
+			parseErrorExamples: [`{{identifier}} 100`]
 		}),
 		"stdoutBufferDebounceTime": option({
 			signatureName: "value",

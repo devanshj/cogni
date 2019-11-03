@@ -91,9 +91,9 @@ const getAliases = () => {
 			["ts", "ts-node"],
 		].map(([ext, p]) =>
 			({
-				match: new RegExp(`^(\\S+)\\.${ext}$`),
-				alias: (s: string, fileBase: string) =>
-					`run "${p} ${s}" -w "${fileBase}.py"`
+				match: new RegExp(`^(\\S+)\\.${ext}$(.*)`),
+				alias: (s: string, fileBase: string, args: string) =>
+					`run "${p} ${s} ${args}" -w "${fileBase}.py"`
 			})
 		), {
 			match: /^(\S+)\.c(.*)/,

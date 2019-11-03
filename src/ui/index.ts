@@ -27,11 +27,10 @@ export const ui = (
 		keypress$
 	);
 	const staerm$ = state$.pipe(map(s => s.staerm));
-	const staermInput$ = staerm$.pipe(map(s => s.input));
 	const staermText$ = staerm$.pipe(map(s => s.text));
 	const stdinAreas$ = state$.pipe(map(s => s.stdinAreas));
 
-	const focusedAreaIndex$ = staermInput$.pipe(
+	/* const focusedAreaIndex$ = staermInput$.pipe(
 		withLatestFrom(
 			cogniOutput$.pipe(map(o => o.stdinAreas))
 		),
@@ -46,7 +45,7 @@ export const ui = (
 		)
 	);
     
-	/*const stdinAreas$ = merge(
+	const stdinAreas$ = merge(
 		staermInput$.pipe(
 			filter(notNull),
 			withLatestFrom(
@@ -124,8 +123,6 @@ export const ui = (
 		})),
 		filter((i): i is Cogni.Input => i.process !== null)
 	).subscribe(cogniInput$);
-
-	
 
 	return staerm$;
 }
