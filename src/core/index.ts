@@ -11,7 +11,7 @@ export const toCogniOutput = (
 	{ process, feeds }: Cogni.Input,
 	config: Partial<Cogni.Config> = defaultConfig
 ): Promise<Cogni.Output> => {
-	let { noStdoutFallbackTimeout } = { ...config, ...defaultConfig };
+	let { noStdoutFallbackTimeout } = { ...defaultConfig, ...config };
 	let { exit$, stdout$, stdinWrite } = process;
     
 

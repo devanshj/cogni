@@ -10,7 +10,7 @@ export const toNavigation =
 			keypress$.pipe(
 				switchMap(({ sequence }) =>
 					sequence === "\u001b[A" ? of("UP" as const) :
-					sequence === "\u001b[B" ? of("DOWN" as const) :
+					sequence === "\u001b[B" || sequence === "\r" ? of("DOWN" as const) :
 					EMPTY
 				)
 			);
