@@ -1,1 +1,1 @@
-node dist %*
+node %~dp0/dist %*
