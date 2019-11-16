@@ -22,24 +22,19 @@ export const toState = (
 		merge(
 			focusedAreaIndex$.pipe(
 				map((i): Reducer =>
-					({ staerm, stdinAreas }) => {
-						//console.log("focusedAreaIndex =", i);
-						//console.log("stdinAreas =", stdinAreas);
-
-						return ({
-							staerm: {
-								...staerm,
-								input: 
-									i === null || stdinAreas[i] === undefined
-										? null
-										: {
-											...stdinAreas[i],
-											caretOffset: stdinAreas[i].length
-										}
-							},
-							stdinAreas
-						})
-					}
+					({ staerm, stdinAreas }) => ({
+						staerm: {
+							...staerm,
+							input: 
+								i === null || stdinAreas[i] === undefined
+									? null
+									: {
+										...stdinAreas[i],
+										caretOffset: stdinAreas[i].length
+									}
+						},
+						stdinAreas
+					})
 				)
 			),
 			cogniOutput$.pipe(
