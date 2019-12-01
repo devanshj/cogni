@@ -32,7 +32,11 @@ export const lines = (...lines: string[]) => lines.join("\n");
 export const brightCyan = (s: string) => "\u001B[96m" + s + "\u001B[39m";
 export const grey = (s: string) => "\u001B[90m" + s + "\u001B[39m";
 export const red = (s: string) => "\u001B[31m" + s + "\u001B[39m";
-
-export const print = (x: string = "") => process.stdout.write(padded(x));
-export const println = (x: string = "") => process.stdout.write(padded(x) + "\n");
-export const clear = () => process.stdout.write("\u001B[2J" + "\u001B[1;1H");
+export const createStdout = (stdoutWrite: (data: string) => void) => ({
+	print: (x: string = "") => stdoutWrite(padded(x)),
+	println: (x: string = "") => stdoutWrite(padded(x) + "\n"),
+	clear: () => stdoutWrite("\u001B[2J" + "\u001B[1;1H")
+})
+export const stdoutFromProcess =
+	(process: NodeJS.Process) =>
+		createStdout(s => process.stdout.write(s))

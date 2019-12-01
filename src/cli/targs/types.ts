@@ -3,13 +3,15 @@ export namespace Targs {
 	export type ProgramConstructor = {
 		name: string,
 		commands: Command<any, any>[],
-		noCommandHelp: () => string
+		noCommandHelp: () => string,
+		stdoutWrite: (data: string) => void
 	}
 
 	export type Command<A extends ArgumentTuple, O extends OptionRecord> = {
 		identifiers: [string, ...string[]],
 		description: string,
 		examples: string[],
+		argvMiddleware: (argv: string[]) => string[],
 		arguments: A,
 		options: O,
 		action: Action<A, O>
@@ -18,7 +20,8 @@ export namespace Targs {
 
 	export type Argument<T> = {
 		type: ParserConstructor<T>,
-		signatureName: string
+		signatureName: string,
+		variadicLength: number
 	}
 	export type ArgumentTuple = Argument<any>[] | [Argument<any>];
 

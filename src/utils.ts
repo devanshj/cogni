@@ -53,3 +53,7 @@ export const toBehaviorSubject = <T>(source$: Observable<T>, initialValue: T) =>
 export const getIndex =
 	<T>(i: number, a: T[]) =>
 		a[i] as T | undefined;
+
+export const range =
+	(start: number, end: number) =>
+		Array.from({ length: end - start + 1 }, (_, i) => i);

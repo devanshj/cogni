@@ -11,7 +11,7 @@ import { spawn, ChildProcess, exec } from "child_process";
 import { BehaviorSubject, Observable, Subject } from "rxjs";
 import { switchMap, take } from "rxjs/operators";
 import { fromEmitter } from "rxjs-from-emitter";
-import { lines, grey, println, red, clear, print } from "./utils";
+import { lines, grey, red, stdoutFromProcess } from "./utils";
 import { use, assertType } from "../utils";
 import { promisify } from "util";
 
@@ -24,6 +24,7 @@ const run = command({
 		noStdoutFallbackTimeout,
 		stdoutBufferDebounceTime
 	}) => {
+		let { println, print, clear } = stdoutFromProcess(process)
 		
 		// ---
 		// interactive check

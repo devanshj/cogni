@@ -102,8 +102,7 @@ type Optional = {
 	<T>(defaultValue: T): Targs.HigherOrderParserConstructor<T, T>
 }
 
-
-export type Compose = {
+type Compose = {
 
 	<A>(
 		base: Targs.ParserConstructor<A>

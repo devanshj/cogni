@@ -1,8 +1,9 @@
 import { command, argument, t, option } from "./targs";
 import path from "path";
-import { grey, println, red } from "./utils";
+import { grey, red, stdoutFromProcess } from "./utils";
 import toArgv from "./targs/to-argv";
 import cogniProgram from ".";
+import defaultConfig, { Config } from "./default-config";
 
 const alias = command({
 	identifiers: ["alias"],
@@ -11,10 +12,19 @@ const alias = command({
 		`$ cogni alias foo.py ${grey(`# in-build alias`)}`,
 		`$ cogni alias something something ${grey(`# will use alias defined in cogni.config.js`)}`,
 	],
+	argvMiddleware: argv =>
+		argv.map((x, i) =>
+			x.trim() === "-r"
+				? i === 0
+					? x
+					: "__COGNI_ALIAS-r"
+				: x.replace(/^--/, "__COGNI_ALIAS--").replace(/^-/, "__COGNI_ALIAS-")
+		),
 	arguments: [
 		argument({
 			type: t.compose(t.string(), t.optional("")),
 			signatureName: "identifier",
+			variadicLength: Infinity
 		})
 	],
 	options: {
@@ -24,22 +34,25 @@ const alias = command({
 		})
 	},
 	action: ([identifier], { allowPossibleRecursion }) => {
+		identifier = identifier.replace(/__COGNI_ALIAS/g, "");
 		let alias =
 			getAliases()
+			.reverse()
 			.find(alias =>
 				typeof alias.match === "string"
 					? alias.match === identifier
 					: alias.match.test(identifier)
 			);
+		const { println } = stdoutFromProcess(process)
+
 		if (alias) {
 			let argvString = alias.alias(identifier, ...identifier.match(alias.match)!.slice(1));
 			let argv = toArgv(argvString);
-
-
+			
+			
 			if (["run", "pipe"].includes(argv[0].trim())) {
 				println();
 				println(`Alias: cogni ${argvString}`);
-				println();
 				cogniProgram.takeArgv(["cogni", ...argv]);
 			} else if (argv[0].trim() === "alias") {
 				if (allowPossibleRecursion) {
@@ -71,8 +84,6 @@ const alias = command({
 })
 export default alias;
 
-
-
 const getAliases = () => {
 	let config: any | null;
 	try {
@@ -84,31 +95,7 @@ const getAliases = () => {
 	}
 	
 	return [
-		...((config || {}).aliases as Alias[] || []),
-		...[
-			["py", "python"],
-			["js", "node"],
-			["ts", "ts-node"],
-		].map(([ext, p]) =>
-			({
-				match: new RegExp(`^(\\S+)\\.${ext}$(.*)`),
-				alias: (s: string, fileBase: string, args: string) =>
-					`run "${p} ${s} ${args}" -w "${fileBase}.py"`
-			})
-		), {
-			match: /^(\S+)\.c(.*)/,
-			alias: (s: string, fileBase: string, args: string) =>
-				`run "./${fileBase} ${args}" -w "${fileBase}.c" -b "gcc -o ${fileBase} ${fileBase}.c"`
-		}, {
-			match: /^(\S+)\.java(.*)/,
-			alias: (s: string, fileBase: string, args: string) =>
-				`run "java ${fileBase} ${args}" -w "${fileBase}.java" -b "javac ${fileBase}.java"`
-		}
+		...defaultConfig.aliases,
+		...((config || {}).aliases as Config["aliases"] || [])
 	]
-	
 }
-
-type Alias = {
-	match: RegExp | string,
-	alias: (s: string, ...ss: string[]) => string
-};

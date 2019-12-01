@@ -25,6 +25,7 @@ const cogniProgram = program({
 			"(coming soon) pipe stdin to a process with hot reloading",
 			""
 		)
-	)
+	),
+	stdoutWrite: (s: string) => process.stdout.write(s)
 });
 export default cogniProgram;

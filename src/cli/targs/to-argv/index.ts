@@ -10,7 +10,6 @@ const toArgv = (_argv: string) => {
 		let nextChar = _argv[cursor+1] as string | undefined;
 
 		if (char === "\\") {
-			console.log(nextChar);
 			currentArg += nextChar === undefined ? "" : nextChar;
 			cursor += 2;
 			continue;

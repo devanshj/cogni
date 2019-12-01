@@ -1,21 +1,24 @@
 import { Targs } from "./types";
 import parseArgv from "./argv-parser";
 import { t } from "./type-parser";
-import { red, brightCyan, padded, grey, println } from "../utils";
+import { red, brightCyan, grey, createStdout } from "../utils";
+import { use } from "../../utils";
 
 
-const execute =  <A extends Targs.ArgumentTuple, O extends Targs.OptionRecord>(
-	{ command, argv: _argv, programName}: {
+const execute = <A extends Targs.ArgumentTuple, O extends Targs.OptionRecord>(
+	{ command, argv: _argv, programName, stdoutWrite }: {
 		command: Targs.Command<A, O>,
 		argv: string[],
-		programName: string
+		programName: string,
+		stdoutWrite: (data: string) => void
 	}
 ) => {
-	let argv = parseArgv(_argv.slice(2));
+	let argv = parseArgv(command.argvMiddleware(_argv.slice(2)));
 	let argvOriginal = { argument: [...argv.arguments], options: { ...argv.options } }
 	let commandName = _argv[1];
 	let parsedArgs = [] as string[];
 	let parsedOptions = {} as { [K in string]: unknown };
+	const { println } = createStdout(stdoutWrite);
 
 	if ("-h" in argv.options || "--help" in argv.options) {
 		println();
@@ -30,7 +33,12 @@ const execute =  <A extends Targs.ArgumentTuple, O extends Targs.OptionRecord>(
 
 	for (let [i, argSpec] of command.arguments.entries()) {
 		let parser = argSpec.type(argSpec.signatureName);
-		let arg = argv.arguments[i] || null;
+		let arg =
+			use(argv.arguments.splice(0, argSpec.variadicLength)).as(args =>
+				args.length === 0
+					? null
+					: args.join(" ")
+			);
 		let parsed = parser(arg);
 
 		if (!parsed.isValid) {
@@ -47,7 +55,6 @@ const execute =  <A extends Targs.ArgumentTuple, O extends Targs.OptionRecord>(
 		}
 
 		parsedArgs.push(parsed.data);
-		argv.arguments.shift();
 	}
 
 	if (argv.arguments.length > 0) {
@@ -138,6 +145,7 @@ const execute =  <A extends Targs.ArgumentTuple, O extends Targs.OptionRecord>(
 		println();
 		println("Use -h for help");
 		println();
+		return;
 	}
 
 	command.action(parsedArgs as any, parsedOptions as any);

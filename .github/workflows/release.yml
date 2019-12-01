@@ -1,0 +1,35 @@
+name: Create draft release
+
+on:
+  push:
+    tags:
+    - "v*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions/setup-node@v1
+          with:
+            node-version: "10.x"
+      - name: Compile
+        run: tsc
+      - name: Bundle
+        run: sh scripts/bundle.sh
+      - name: Pack
+        run: sh scripts/pack.sh
+      - id: version
+        run: echo "##[set-output name=value;]$(sh scripts/get-version.sh)"
+      - run: mv ./bundles/index.js ./bundles/cogni-${{ steps.version.outputs.value }}.js
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          draft: true
+          files: |
+            ./build/cogni-${{ steps.version.outputs.value }}-windows-x64
+            ./build/cogni-${{ steps.version.outputs.value }}-windows-x86
+            ./build/cogni-${{ steps.version.outputs.value }}-linux-x64
+            ./build/cogni-${{ steps.version.outputs.value }}-linux-x86
+            ./build/cogni-${{ steps.version.outputs.value }}-macos-x64
+            ./bundles/cogni-${{ steps.version.outputs.value }}.js
