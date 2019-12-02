@@ -34,6 +34,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           draft: true
+          body: Release v${{ steps.version.outputs.value }}
           files: |
             ./build/cogni-${{ steps.version.outputs.value }}-windows-x64.exe
             ./build/cogni-${{ steps.version.outputs.value }}-windows-x86.exe
