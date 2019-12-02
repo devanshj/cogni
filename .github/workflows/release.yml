@@ -35,8 +35,8 @@ jobs:
         with:
           draft: true
           files: |
-            ./build/cogni-${{ steps.version.outputs.value }}-windows-x64
-            ./build/cogni-${{ steps.version.outputs.value }}-windows-x86
+            ./build/cogni-${{ steps.version.outputs.value }}-windows-x64.exe
+            ./build/cogni-${{ steps.version.outputs.value }}-windows-x86.exe
             ./build/cogni-${{ steps.version.outputs.value }}-linux-x64
             ./build/cogni-${{ steps.version.outputs.value }}-linux-x86
             ./build/cogni-${{ steps.version.outputs.value }}-macos-x64
