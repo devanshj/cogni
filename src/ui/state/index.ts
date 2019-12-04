@@ -7,10 +7,10 @@ import { KeypressData, TerminalState, r as staermR } from "staerm";
 import { use, splice } from "../../utils";
 
 
-export const toState = (
+export const toState = ({ cogniOutput$, keypress$ }: {
 	cogniOutput$: Observable<Cogni.Output>,
 	keypress$: Observable<KeypressData>
-) => 
+}) => 
 	use(
 		keypress$.pipe(
 			toNavigation(),
@@ -82,38 +82,7 @@ export const toState = (
 							})
 						)
 				)
-			)/*,
-			keypress$.pipe(
-				filter(k => k.sequence === "\r"),
-				withLatestFrom(
-					cogniOutput$.pipe(map(o => o.stdinAreas)),
-					focusedAreaIndex$.pipe(filter(notNull))
-				),
-				map(([_, areas, i]): Reducer => ({ text, input }) =>
-					input === null
-						? { text, input }
-						: use(toStdinFeeds(text, areas)).as(feeds =>
-							({
-								text: toText(
-									splice(
-										feeds,
-										i,
-										2,
-										feeds[i].substring(0, input.caretOffset),
-										feeds[i].substring(input.caretOffset)
-									),
-									text,
-									areas
-								),
-								input: {
-									position: areas[i + 1].position,
-									caretOffset: 0,
-									length: input.caretOffset
-								}
-							})
-						)
-				)
-			)*/
+			)
 		).pipe(
 			scan(
 				(state, reducer) => reducer(state),
@@ -121,8 +90,6 @@ export const toState = (
 			)
 		)
 	);
-
-const cyclicAdd = (x: number, m: number) => (x + m) % m;
 
 type State = { staerm: TerminalState, stdinAreas: Cogni.Output["stdinAreas"] };
 type Reducer = (state: State) => State;

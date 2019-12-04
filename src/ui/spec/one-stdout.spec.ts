@@ -29,6 +29,6 @@ describe("cogni-ui/one-stdout.py", () => {
 		expect(await staerm()).toStrictEqual({
 			text: "hello",
 			input: null
-		})
+		});
 	})
 })

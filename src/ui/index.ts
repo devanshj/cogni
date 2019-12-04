@@ -8,11 +8,12 @@ import { distinctUntilChanged, filter, map, share, switchMap, withLatestFrom, de
 import { splice } from "../utils";
 
 export const ui = (
-	{ keypress$, refresh$, spawnProcess, toCogniOutput }: {
+	{ keypress$, refresh$, spawnProcess, toCogniOutput, allowEagerStdin = false }: {
 		keypress$: Observable<KeypressData>,
 		refresh$: Observable<true>,
 		toCogniOutput: (input: Cogni.Input) => Promise<Cogni.Output>,
-		spawnProcess: () => Promise<Cogni.Input["process"] | null>
+		spawnProcess: () => Promise<Cogni.Input["process"] | null>,
+		allowEagerStdin?: boolean
 	}
 ) => {
 	
@@ -22,64 +23,10 @@ export const ui = (
 		share()
 	);
 
-	const state$ = toState(
-		cogniOutput$,
-		keypress$
-	);
+	const state$ = toState({ cogniOutput$, keypress$ });
 	const staerm$ = state$.pipe(map(s => s.staerm));
 	const staermText$ = staerm$.pipe(map(s => s.text));
 	const stdinAreas$ = state$.pipe(map(s => s.stdinAreas));
-
-	/* const focusedAreaIndex$ = staermInput$.pipe(
-		withLatestFrom(
-			cogniOutput$.pipe(map(o => o.stdinAreas))
-		),
-		map(([input, areas]) =>
-			input === null
-				? null
-				: areas.findIndex(
-					({ position: { x, y } }) =>
-						input.position.x === x &&
-						input.position.y === y
-				)
-		)
-	);
-    
-	const stdinAreas$ = merge(
-		staermInput$.pipe(
-			filter(notNull),
-			withLatestFrom(
-				cogniOutput$.pipe(map(o => o.stdinAreas)),
-				focusedAreaIndex$.pipe(filter(notNull))
-			),
-			map(([{ position, length }, areas, i]) =>
-				splice(
-					areas,
-					i,
-					1,
-					{ position, length }
-				)
-			)
-		),
-		keypress$.pipe(
-			filter(k => k.sequence === "\r"),
-			withLatestFrom(
-				staermInput$.pipe(filter(notNull)),
-				cogniOutput$.pipe(map(o => o.stdinAreas)),
-				focusedAreaIndex$.pipe(filter(notNull))
-			),
-			map(([_, { length, caretOffset, position }, areas, fI]) => {
-				logWithTag("got input")({ position, length, caretOffset });
-				
-				return areas.map((area, aI) =>
-					aI < fI ? area :
-					aI === fI ? { ...area, length: caretOffset } :
-					aI === fI + 1  ? { ...area, length: length - caretOffset + 1 } :
-					{ ...area, length: areas[aI - 1].length }
-				)
-			})
-		)
-	)*/
 	
 	const stdinFeeds$ = merge(
 		staermText$.pipe(
