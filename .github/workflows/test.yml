@@ -1,0 +1,29 @@
+name: Test
+
+on:
+  push
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@master
+      - name: Setup node
+        uses: actions/setup-node@v1
+        with:
+          node-version: "12.x"
+      - name: Setup python
+        uses: actions/setup-python@v1
+        with:
+          python-version: "3.x"
+      - name: Install npm dependencies
+        run: npm install
+      - name: Static type checking
+        run: ./node_modules/.bin/tsc --noEmit
+      - name: Test process-port
+        run: ./node_modules/.bin/jest process-port
+      - name: Test core
+        run: ./node_modules/.bin/jest core
+      - name: Test ui
+        run: ./node_modules/.bin/jest ui
