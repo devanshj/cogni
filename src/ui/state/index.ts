@@ -22,11 +22,11 @@ export const toState = ({ cogniOutput$, keypress$ }: {
 					use(
 						focusedIndex === null
 							? null
-							: focusedIndex + (
+							: (focusedIndex + (
 								direction === "UP" ? -1 :
 								direction === "DOWN" ? +1 :
 								0
-							)
+							)) % stdinAreas.length
 					).as(focusedIndex =>
 						({
 							staerm: {
