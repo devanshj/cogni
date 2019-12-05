@@ -7,15 +7,21 @@ import { filter, share } from "rxjs/operators";
 import { notUndefined } from "../../utils";
 import { nexter } from "../../testing/utils";
 import { python, key } from "./utils";
+import { ChildProcess } from "child_process";
 
 describe("cogni-ui/adder.py", () => {
 	test("works", async () => {
 		const keypress$ = new BehaviorSubject<KeypressData | undefined>(undefined);
-		const spawnProcess = async () => toCogniProcess(python(
-			`a = int(input("a = "))`,
-			`aa = int(input("aa = "))`,
-			`print("a + aa = " + str(a + aa), end="")`
-		));
+		let runningProcess = null as ChildProcess | null;
+		const spawnProcess = async () => {
+			if (runningProcess) runningProcess.kill();
+			runningProcess = python(
+				`a = int(input("a = "))`,
+				`aa = int(input("aa = "))`,
+				`print("a + aa = " + str(a + aa), end="")`
+			);
+			return toCogniProcess(runningProcess);
+		};
 		const staerm$ = new BehaviorSubject<TerminalState | undefined>(undefined);
 		const staerm = nexter(staerm$);
 		
@@ -137,5 +143,7 @@ describe("cogni-ui/adder.py", () => {
 				length: 2
 			}
 		})
+
+		if (runningProcess) runningProcess.kill();
 	})
 })

@@ -8,7 +8,7 @@ import { notUndefined } from "../../utils";
 import { nexter } from "../../testing/utils";
 import { python, key } from "./utils";
 
-describe("allow-eager-stdin", () => {
+describe.skip("allow-eager-stdin", () => {
 
 	test("eager stdin area does not exists before last stdin is filled", async () => {
 		const keypress$ = new BehaviorSubject<KeypressData | undefined>(undefined);
