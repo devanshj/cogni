@@ -1,7 +1,7 @@
 {
 	"name": "cogni",
 	"private": true,
-	"version": "0.0.8",
+	"version": "0.0.9",
 	"dependencies": {
 		"@types/node": "^12.12.14",
 		"chokidar": "^3.3.0",
